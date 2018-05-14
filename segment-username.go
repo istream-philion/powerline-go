@@ -6,14 +6,14 @@ import (
 
 func segmentUser(p *powerline) {
 	var userPrompt string
-	if *p.args.Shell == "bash" {
-		userPrompt = "\\u"
-	} else if *p.args.Shell == "zsh" {
-		userPrompt = "%n"
-	} else {
-		user, _ := os.LookupEnv("USER")
-		userPrompt = user
-	}
+	//if *p.args.Shell == "bash" {
+	//	userPrompt = "\\u"
+	//} else if *p.args.Shell == "zsh" {
+	//	userPrompt = "%n"
+	//} else {
+	user, _ := os.LookupEnv("USER")
+	userPrompt = user
+	//}
 
 	var background uint8
 	if os.Getuid() == 0 {

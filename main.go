@@ -94,6 +94,7 @@ var modules = map[string](func(*powerline)){
 	"docker":    segmentDocker,
 	"dotenv":    segmentDotEnv,
 	"exit":      segmentExitCode,
+	"filler":    segmentFiller,
 	"git":       segmentGit,
 	"gitlite":   segmentGitLite,
 	"hg":        segmentHg,

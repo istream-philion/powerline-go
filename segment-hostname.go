@@ -28,13 +28,15 @@ func segmentHost(p *powerline) {
 		background = hash[0]
 		foreground = p.theme.HostnameColorizedFgMap[background]
 	} else {
-		if *p.args.Shell == "bash" {
-			hostPrompt = "\\h"
-		} else if *p.args.Shell == "zsh" {
-			hostPrompt = "%m"
-		} else {
-			hostPrompt = getHostName()
-		}
+		//if *p.args.Shell == "bash" {
+		//	hostPrompt = "\\h"
+		//} else if *p.args.Shell == "zsh" {
+		//	hostPrompt = "%m"
+		//} else {
+		//	hostPrompt = getHostName()
+		//}
+		// above causes line length problem
+		hostPrompt = getHostName()
 
 		foreground = p.theme.HostnameFg
 		background = p.theme.HostnameBg

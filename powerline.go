@@ -3,13 +3,15 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"strings"
+
+	"os"
+	"strconv"
 
 	"github.com/mattn/go-runewidth"
 	"golang.org/x/crypto/ssh/terminal"
 	"golang.org/x/text/width"
-	"os"
-	"strconv"
 )
 
 type ShellInfo struct {
@@ -118,12 +120,14 @@ func termWidth() int {
 func (p *powerline) truncateRow(rowNum int) {
 
 	shellMaxLength := termWidth() * *p.args.MaxWidthPercentage / 100
+	//log.Printf("max: %v, term: %v\n\n", shellMaxLength, termWidth())
 	row := p.Segments[rowNum]
 	rowLength := 0
 
 	if shellMaxLength > 0 {
 		for _, segment := range row {
 			rowLength += segment.width
+			//log.Printf("%v %v - %v\n", segment.width, rowLength, segment.content)
 		}
 
 		if rowLength > shellMaxLength && *p.args.TruncateSegmentWidth > 0 {
@@ -138,13 +142,21 @@ func (p *powerline) truncateRow(rowNum int) {
 			for minPriorityNotTruncatedSegmentId != -1 && rowLength > shellMaxLength {
 				segment := row[minPriorityNotTruncatedSegmentId]
 
-				rowLength -= segment.width
+				//log.Printf("before: %v, len: %v\n", segment.content, rowLength)
 
-				segment.content = runewidth.Truncate(segment.content, *p.args.TruncateSegmentWidth-runewidth.StringWidth(segment.separator)-3, "…")
+				// TODO refactor to push the width to the render(expectedWitdh)
+				width := segment.width + shellMaxLength - rowLength - 2
+				if width < *p.args.TruncateSegmentWidth {
+					width = *p.args.TruncateSegmentWidth
+				}
+				rowLength -= segment.width
+				segment.content = runewidth.Truncate(segment.content, width-runewidth.StringWidth(segment.separator)-3, "…")
 				segment.width = segment.computeWidth()
 
 				row = append(append(row[:minPriorityNotTruncatedSegmentId], segment), row[minPriorityNotTruncatedSegmentId+1:]...)
 				rowLength += segment.width
+
+				//log.Printf("after : %v, len: %v, max: %v\n", segment.content, rowLength, shellMaxLength)
 
 				minPriorityNotTruncated = MaxInteger
 				minPriorityNotTruncatedSegmentId = -1
@@ -231,6 +243,14 @@ func (p *powerline) drawRow(rowNum int, buffer *bytes.Buffer) {
 func (p *powerline) draw() string {
 
 	var buffer bytes.Buffer
+
+	// template override
+	templateStr, ok := os.LookupEnv("POWERLINE_FMT")
+	if ok {
+		log.Print("tmpl: ", templateStr)
+		applyTemplate(p, templateStr, &buffer)
+		return buffer.String()
+	}
 
 	for rowNum := range p.Segments {
 		p.truncateRow(rowNum)
